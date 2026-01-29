@@ -107,6 +107,7 @@ async function loadKeys() {
                         <div class="key-date">${new Date(key.createdAt).toLocaleString()}</div>
                     </div>
                 </div>
+                ${key.description ? `<div class="key-description">${escapeHtml(key.description)}</div>` : ''}
                 <div class="key-value">${escapeHtml(key.apiKey)}</div>
                 <div class="key-actions">
                     <button class="btn-secondary" onclick="copyKey('${escapeHtml(key.apiKey)}')">📋 Copy</button>
@@ -123,6 +124,7 @@ async function loadKeys() {
 // Add new API key
 async function addKey() {
     const name = document.getElementById('keyName').value.trim();
+    const description = document.getElementById('keyDescription').value.trim();
     const apiKey = document.getElementById('apiKey').value.trim();
     
     if (!name || !apiKey) {
@@ -136,7 +138,7 @@ async function addKey() {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ name, apiKey })
+            body: JSON.stringify({ name, description, apiKey })
         });
         
         const data = await response.json();
@@ -144,6 +146,7 @@ async function addKey() {
         if (data.success) {
             showMessage('API key added successfully!', 'success');
             document.getElementById('keyName').value = '';
+            document.getElementById('keyDescription').value = '';
             document.getElementById('apiKey').value = '';
             loadKeys();
         } else {

@@ -32,6 +32,10 @@ const apiKeySchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        default: ''
+    },
     encryptedKey: {
         type: String,
         required: true
@@ -86,6 +90,7 @@ app.get('/api/keys', isAuthenticated, async (req, res) => {
         const decryptedKeys = keys.map(key => ({
             _id: key._id,
             name: key.name,
+            description: key.description,
             apiKey: CryptoJS.AES.decrypt(key.encryptedKey, process.env.ENCRYPTION_KEY).toString(CryptoJS.enc.Utf8),
             createdAt: key.createdAt
         }));
@@ -99,7 +104,7 @@ app.get('/api/keys', isAuthenticated, async (req, res) => {
 // Add new API key
 app.post('/api/keys', isAuthenticated, async (req, res) => {
     try {
-        const { name, apiKey } = req.body;
+        const { name, description, apiKey } = req.body;
         
         if (!name || !apiKey) {
             return res.status(400).json({ error: 'Name and API key are required' });
@@ -110,6 +115,7 @@ app.post('/api/keys', isAuthenticated, async (req, res) => {
         
         const newKey = new ApiKey({
             name,
+            description: description || '',
             encryptedKey
         });
         
@@ -121,6 +127,7 @@ app.post('/api/keys', isAuthenticated, async (req, res) => {
             data: {
                 _id: newKey._id,
                 name: newKey.name,
+                description: newKey.description,
                 apiKey: apiKey,
                 createdAt: newKey.createdAt
             }
