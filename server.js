@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const CryptoJS = require('crypto-js');
 const path = require('path');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,27 @@ const apiKeySchema = new mongoose.Schema({
 });
 
 const ApiKey = mongoose.model('ApiKey', apiKeySchema);
+
+// Hackathon Schema
+const hackathonSchema = new mongoose.Schema({
+    hackathon_name: String,
+    organizer: String,
+    deadline: String,
+    event_date_duration: String,
+    location: String,
+    registration_fee: String,
+    prize_pool: String,
+    short_description: String,
+    eligibility: String,
+    team_size: String,
+    official_link: String,
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const Hackathon = mongoose.model('Hackathon', hackathonSchema);
 
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {
@@ -145,6 +167,76 @@ app.delete('/api/keys/:id', isAuthenticated, async (req, res) => {
         res.json({ success: true, message: 'API key deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete API key' });
+    }
+});
+
+// Add new hackathon - manual entry
+app.post('/api/hackathons', isAuthenticated, async (req, res) => {
+    try {
+        const {
+            hackathon_name,
+            organizer,
+            deadline,
+            event_date_duration,
+            location,
+            registration_fee,
+            prize_pool,
+            short_description,
+            eligibility,
+            team_size,
+            official_link
+        } = req.body;
+        
+        if (!hackathon_name) {
+            return res.status(400).json({ error: 'Hackathon name is required' });
+        }
+        
+        // Create new hackathon
+        const newHackathon = new Hackathon({
+            hackathon_name,
+            organizer: organizer || '',
+            deadline: deadline || '',
+            event_date_duration: event_date_duration || '',
+            location: location || '',
+            registration_fee: registration_fee || '',
+            prize_pool: prize_pool || '',
+            short_description: short_description || '',
+            eligibility: eligibility || '',
+            team_size: team_size || '',
+            official_link: official_link || ''
+        });
+        
+        await newHackathon.save();
+        
+        res.json({
+            success: true,
+            message: 'Hackathon added successfully',
+            data: newHackathon
+        });
+    } catch (error) {
+        console.error('Failed to add hackathon:', error);
+        res.status(500).json({ error: 'Failed to add hackathon: ' + error.message });
+    }
+});
+
+// Get all hackathons
+app.get('/api/hackathons', isAuthenticated, async (req, res) => {
+    try {
+        const hackathons = await Hackathon.find().sort({ createdAt: -1 });
+        res.json(hackathons);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch hackathons' });
+    }
+});
+
+// Delete hackathon
+app.delete('/api/hackathons/:id', isAuthenticated, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Hackathon.findByIdAndDelete(id);
+        res.json({ success: true, message: 'Hackathon deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete hackathon' });
     }
 });
 

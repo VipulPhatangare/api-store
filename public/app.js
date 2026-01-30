@@ -1,11 +1,59 @@
-// Show message to user
-function showMessage(text, type = 'success') {
-    const messageEl = document.getElementById('message');
-    messageEl.textContent = text;
-    messageEl.className = `message ${type} active`;
+// Show toast notification
+function showToast(text, type = 'success') {
+    const toastContainer = document.getElementById('toastContainer');
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icon = type === 'success' ? '✓' : '✕';
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-content">${text}</span>
+        <button class="toast-close" onclick="closeToast(this)">×</button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto remove after 3 seconds
     setTimeout(() => {
-        messageEl.classList.remove('active');
+        closeToast(toast.querySelector('.toast-close'));
     }, 3000);
+}
+
+// Close toast notification
+function closeToast(button) {
+    const toast = button.parentElement;
+    toast.classList.add('hiding');
+    setTimeout(() => {
+        toast.remove();
+    }, 300);
+}
+
+// Show confirmation modal
+function showConfirmModal(title, message, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const confirmBtn = document.getElementById('modalConfirm');
+    
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    modal.classList.add('active');
+    
+    // Remove old event listeners and add new one
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    
+    document.getElementById('modalConfirm').onclick = () => {
+        closeConfirmModal();
+        onConfirm();
+    };
+}
+
+// Close confirmation modal
+function closeConfirmModal() {
+    document.getElementById('confirmModal').classList.remove('active');
 }
 
 // Check authentication status on page load
@@ -44,7 +92,7 @@ async function login() {
     const password = document.getElementById('password').value;
     
     if (!email || !password) {
-        showMessage('Please enter both email and password', 'error');
+        showToast('Please enter both email and password', 'error');
         return;
     }
     
@@ -60,14 +108,14 @@ async function login() {
         const data = await response.json();
         
         if (data.success) {
-            showMessage('Login successful!', 'success');
+            showToast('Login successful!', 'success');
             showMainContent();
             loadKeys();
         } else {
-            showMessage('Invalid credentials', 'error');
+            showToast('Invalid credentials', 'error');
         }
     } catch (error) {
-        showMessage('Login failed', 'error');
+        showToast('Login failed', 'error');
         console.error('Login error:', error);
     }
 }
@@ -76,12 +124,12 @@ async function login() {
 async function logout() {
     try {
         await fetch('/api/logout', { method: 'POST' });
-        showMessage('Logged out successfully', 'success');
+        showToast('Logged out successfully', 'success');
         showLoginForm();
         document.getElementById('email').value = '';
         document.getElementById('password').value = '';
     } catch (error) {
-        showMessage('Logout failed', 'error');
+        showToast('Logout failed', 'error');
         console.error('Logout error:', error);
     }
 }
@@ -116,7 +164,7 @@ async function loadKeys() {
             </div>
         `).join('');
     } catch (error) {
-        showMessage('Failed to load API keys', 'error');
+        showToast('Failed to load API keys', 'error');
         console.error('Load keys error:', error);
     }
 }
@@ -128,7 +176,7 @@ async function addKey() {
     const apiKey = document.getElementById('apiKey').value.trim();
     
     if (!name || !apiKey) {
-        showMessage('Please enter both name and API key', 'error');
+        showToast('Please enter both name and API key', 'error');
         return;
     }
     
@@ -144,16 +192,16 @@ async function addKey() {
         const data = await response.json();
         
         if (data.success) {
-            showMessage('API key added successfully!', 'success');
+            showToast('API key added successfully!', 'success');
             document.getElementById('keyName').value = '';
             document.getElementById('keyDescription').value = '';
             document.getElementById('apiKey').value = '';
             loadKeys();
         } else {
-            showMessage(data.error || 'Failed to add API key', 'error');
+            showToast(data.error || 'Failed to add API key', 'error');
         }
     } catch (error) {
-        showMessage('Failed to add API key', 'error');
+        showToast('Failed to add API key', 'error');
         console.error('Add key error:', error);
     }
 }
@@ -162,7 +210,7 @@ async function addKey() {
 async function copyKey(apiKey) {
     try {
         await navigator.clipboard.writeText(apiKey);
-        showMessage('API key copied to clipboard!', 'success');
+        showToast('API key copied to clipboard!', 'success');
     } catch (error) {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
@@ -173,9 +221,9 @@ async function copyKey(apiKey) {
         textArea.select();
         try {
             document.execCommand('copy');
-            showMessage('API key copied to clipboard!', 'success');
+            showToast('API key copied to clipboard!', 'success');
         } catch (err) {
-            showMessage('Failed to copy API key', 'error');
+            showToast('Failed to copy API key', 'error');
         }
         document.body.removeChild(textArea);
     }
@@ -183,31 +231,36 @@ async function copyKey(apiKey) {
 
 // Delete API key
 async function deleteKey(id) {
-    if (!confirm('Are you sure you want to delete this API key?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/keys/${id}`, {
-            method: 'DELETE'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showMessage('API key deleted successfully!', 'success');
-            loadKeys();
-        } else {
-            showMessage('Failed to delete API key', 'error');
+    showConfirmModal(
+        'Delete API Key',
+        'Are you sure you want to delete this API key? This action cannot be undone.',
+        async () => {
+            try {
+                const response = await fetch(`/api/keys/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('API key deleted successfully!', 'success');
+                    loadKeys();
+                } else {
+                    showToast('Failed to delete API key', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete API key', 'error');
+                console.error('Delete key error:', error);
+            }
         }
-    } catch (error) {
-        showMessage('Failed to delete API key', 'error');
-        console.error('Delete key error:', error);
-    }
+    );
 }
 
 // Escape HTML to prevent XSS
 function escapeHtml(text) {
+    if (text === null || text === undefined) {
+        return '';
+    }
     const map = {
         '&': '&amp;',
         '<': '&lt;',
@@ -215,13 +268,222 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
-// Handle Enter key press on login form
+// Switch between tabs
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Deactivate all tab buttons
+    document.querySelectorAll('.tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    if (tabName === 'apiKeys') {
+        document.getElementById('apiKeysTab').classList.add('active');
+        document.querySelector('.tab:first-child').classList.add('active');
+    } else if (tabName === 'hackathons') {
+        document.getElementById('hackathonsTab').classList.add('active');
+        document.querySelector('.tab:last-child').classList.add('active');
+        loadHackathons();
+    }
+}
+
+// Load all hackathons
+async function loadHackathons() {
+    try {
+        const response = await fetch('/api/hackathons');
+        const hackathons = await response.json();
+        
+        const hackathonsList = document.getElementById('hackathonsList');
+        
+        if (hackathons.length === 0) {
+            hackathonsList.innerHTML = '<div class="no-keys">No hackathons saved yet. Add your first one above!</div>';
+            return;
+        }
+        
+        hackathonsList.innerHTML = hackathons.map(h => `
+            <div class="hackathon-item">
+                <div class="hackathon-title">${escapeHtml(h.hackathon_name || 'N/A')}</div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Organizer:</span>
+                    <span class="hackathon-value">${escapeHtml(h.organizer || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Deadline:</span>
+                    <span class="hackathon-value">${escapeHtml(h.deadline || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Event Date:</span>
+                    <span class="hackathon-value">${escapeHtml(h.event_date_duration || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Location:</span>
+                    <span class="hackathon-value">${escapeHtml(h.location || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Registration Fee:</span>
+                    <span class="hackathon-value">${escapeHtml(h.registration_fee || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Prize Pool:</span>
+                    <span class="hackathon-value">${escapeHtml(h.prize_pool || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Eligibility:</span>
+                    <span class="hackathon-value">${escapeHtml(h.eligibility || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Team Size:</span>
+                    <span class="hackathon-value">${escapeHtml(h.team_size || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Description:</span>
+                    <span class="hackathon-value">${escapeHtml(h.short_description || 'N/A')}</span>
+                </div>
+                
+                <div class="hackathon-detail">
+                    <span class="hackathon-label">Link:</span>
+                    <a href="${escapeHtml(h.official_link)}" target="_blank" class="hackathon-link">${escapeHtml(h.official_link || 'N/A')}</a>
+                </div>
+                
+                <div class="key-date" style="margin-top: 15px; margin-bottom: 10px;">
+                    Saved: ${new Date(h.createdAt).toLocaleString()}
+                </div>
+                
+                <div class="key-actions">
+                    <button class="btn-danger" onclick="deleteHackathon('${h._id}')">🗑️ Delete</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        showToast('Failed to load hackathons', 'error');
+        console.error('Load hackathons error:', error);
+    }
+}
+
+// Add new hackathon
+async function addHackathon() {
+    const hackathon_name = document.getElementById('hackathonName').value.trim();
+    const organizer = document.getElementById('hackathonOrganizer').value.trim();
+    const deadline = document.getElementById('hackathonDeadline').value.trim();
+    const event_date_duration = document.getElementById('hackathonEventDate').value.trim();
+    const location = document.getElementById('hackathonLocation').value.trim();
+    const registration_fee = document.getElementById('hackathonRegFee').value.trim();
+    const prize_pool = document.getElementById('hackathonPrize').value.trim();
+    const short_description = document.getElementById('hackathonDescription').value.trim();
+    const eligibility = document.getElementById('hackathonEligibility').value.trim();
+    const team_size = document.getElementById('hackathonTeamSize').value.trim();
+    const official_link = document.getElementById('hackathonLink').value.trim();
+    
+    if (!hackathon_name) {
+        showToast('Please enter hackathon name', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/hackathons', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                hackathon_name,
+                organizer,
+                deadline,
+                event_date_duration,
+                location,
+                registration_fee,
+                prize_pool,
+                short_description,
+                eligibility,
+                team_size,
+                official_link
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('Hackathon added successfully!', 'success');
+            // Clear all form fields
+            document.getElementById('hackathonName').value = '';
+            document.getElementById('hackathonOrganizer').value = '';
+            document.getElementById('hackathonDeadline').value = '';
+            document.getElementById('hackathonEventDate').value = '';
+            document.getElementById('hackathonLocation').value = '';
+            document.getElementById('hackathonRegFee').value = '';
+            document.getElementById('hackathonPrize').value = '';
+            document.getElementById('hackathonDescription').value = '';
+            document.getElementById('hackathonEligibility').value = '';
+            document.getElementById('hackathonTeamSize').value = '';
+            document.getElementById('hackathonLink').value = '';
+            loadHackathons();
+        } else {
+            showToast(data.error || 'Failed to add hackathon', 'error');
+        }
+    } catch (error) {
+        showToast('Failed to add hackathon', 'error');
+        console.error('Add hackathon error:', error);
+    }
+}
+
+// Delete hackathon
+async function deleteHackathon(id) {
+    showConfirmModal(
+        'Delete Hackathon',
+        'Are you sure you want to delete this hackathon? This action cannot be undone.',
+        async () => {
+            try {
+                const response = await fetch(`/api/hackathons/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Hackathon deleted successfully!', 'success');
+                    loadHackathons();
+                } else {
+                    showToast('Failed to delete hackathon', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete hackathon', 'error');
+                console.error('Delete hackathon error:', error);
+            }
+        }
+    );
+}
+
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     
+    // Close modal when clicking outside
+    const modal = document.getElementById('confirmModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeConfirmModal();
+            }
+        });
+    }
+    
+    // Handle Enter key press
     document.getElementById('password').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             login();

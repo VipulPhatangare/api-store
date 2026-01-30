@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -22,16 +22,16 @@
         }
 
         .container {
-            background: white;
+            background: #1e1e2e;
             border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             padding: 40px;
             max-width: 800px;
             width: 100%;
         }
 
         h1 {
-            color: #333;
+            color: #e0e0e0;
             margin-bottom: 30px;
             text-align: center;
             font-size: 2em;
@@ -52,26 +52,43 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
+            color: #b0b0b0;
             font-weight: 500;
         }
 
         input[type="text"],
         input[type="password"],
-        input[type="email"] {
+        input[type="email"],
+        textarea {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #3a3a4a;
             border-radius: 8px;
             font-size: 14px;
             transition: border-color 0.3s;
+            background: #2a2a3a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
         }
 
         input[type="text"]:focus,
         input[type="password"]:focus,
-        input[type="email"]:focus {
+        input[type="email"]:focus,
+        textarea:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder,
+        input[type="email"]::placeholder,
+        textarea::placeholder {
+            color: #6a6a7a;
         }
 
         button {
@@ -126,14 +143,14 @@
         }
 
         .add-key-section {
-            background: #f8f9fa;
+            background: #252535;
             padding: 25px;
             border-radius: 10px;
             margin-bottom: 30px;
         }
 
         .add-key-section h2 {
-            color: #333;
+            color: #e0e0e0;
             margin-bottom: 20px;
             font-size: 1.3em;
         }
@@ -147,9 +164,14 @@
             margin-top: 20px;
         }
 
+        .keys-list h2 {
+            color: #e0e0e0;
+            margin-bottom: 20px;
+        }
+
         .key-item {
-            background: #fff;
-            border: 2px solid #e0e0e0;
+            background: #252535;
+            border: 2px solid #3a3a4a;
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 15px;
@@ -158,7 +180,7 @@
 
         .key-item:hover {
             border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
         }
 
         .key-header {
@@ -171,17 +193,17 @@
         .key-name {
             font-size: 1.2em;
             font-weight: 600;
-            color: #333;
+            color: #e0e0e0;
         }
 
         .key-value {
             font-family: 'Courier New', monospace;
-            background: #f5f5f5;
+            background: #2a2a3a;
             padding: 10px;
             border-radius: 5px;
             word-break: break-all;
             margin-bottom: 10px;
-            color: #555;
+            color: #b0b0b0;
         }
 
         .key-actions {
@@ -189,55 +211,301 @@
             gap: 10px;
         }
 
-        .message {
-            padding: 12px;
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #2a2a3a;
+            color: #e0e0e0;
+            padding: 16px 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid #667eea;
+        }
+
+        .toast.success {
+            border-left-color: #28a745;
+        }
+
+        .toast.error {
+            border-left-color: #dc3545;
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-close {
+            background: transparent;
+            border: none;
+            color: #9a9aaa;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .toast-close:hover {
+            color: #e0e0e0;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast.hiding {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
+        /* Confirmation Modal */
+        .modal-overlay {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s ease-out;
         }
 
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .modal-overlay.active {
+            display: flex;
         }
 
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .modal {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.2s ease-out;
         }
 
-        .message.active {
-            display: block;
+        .modal-title {
+            color: #e0e0e0;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .modal-message {
+            color: #b0b0b0;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: #3a3a4a;
+            color: #e0e0e0;
+            padding: 10px 20px;
+        }
+
+        .btn-cancel:hover {
+            background: #4a4a5a;
+        }
+
+        .btn-confirm {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+        }
+
+        .btn-confirm:hover {
+            background: #c82333;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .no-keys {
             text-align: center;
-            color: #999;
+            color: #7a7a8a;
             padding: 40px;
             font-size: 1.1em;
         }
 
         .key-date {
             font-size: 0.85em;
-            color: #999;
+            color: #7a7a8a;
         }
 
         .key-description {
             font-size: 0.95em;
-            color: #666;
+            color: #9a9aaa;
             margin-top: 8px;
             margin-bottom: 8px;
             font-style: italic;
         }
+
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3a3a4a;
+        }
+
+        .tab {
+            padding: 12px 30px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #9a9aaa;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #8a9bff;
+        }
+
+        .tab.active {
+            color: #8a9bff;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Hackathon Styles */
+        .hackathon-item {
+            background: #252535;
+            border: 2px solid #3a3a4a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .hackathon-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .hackathon-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .hackathon-detail {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .hackathon-label {
+            font-weight: 600;
+            color: #8a9bff;
+            margin-right: 5px;
+        }
+
+        .hackathon-value {
+            color: #b0b0b0;
+        }
+
+        .hackathon-link {
+            color: #8a9bff;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .hackathon-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-title" id="modalTitle">Confirm Action</div>
+            <div class="modal-message" id="modalMessage">Are you sure?</div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+                <button class="btn-confirm" id="modalConfirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <h1>🔐 API Key Store</h1>
-        
-        <div id="message" class="message"></div>
 
         <!-- Login Form -->
         <div id="loginForm" class="login-form active">
@@ -256,28 +524,108 @@
         <div id="mainContent" class="main-content">
             <button class="btn-logout" onclick="logout()">Logout</button>
 
-            <!-- Add Key Section -->
-            <div class="add-key-section">
-                <h2>Add New API Key</h2>
-                <div class="form-group">
-                    <label for="keyName">Name</label>
-                    <input type="text" id="keyName" placeholder="e.g., OpenAI API Key">
-                </div>
-                <div class="form-group">
-                    <label for="keyDescription">Description (Optional)</label>
-                    <input type="text" id="keyDescription" placeholder="e.g., Used for chatbot project">
-                </div>
-                <div class="form-group">
-                    <label for="apiKey">API Key</label>
-                    <input type="text" id="apiKey" placeholder="Enter your API key">
-                </div>
-                <button class="btn-primary" onclick="addKey()">Add API Key</button>
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('apiKeys')">API Keys</button>
+                <button class="tab" onclick="switchTab('hackathons')">Hackathons</button>
             </div>
 
-            <!-- Keys List -->
-            <div class="keys-list">
-                <h2>Your API Keys</h2>
-                <div id="keysList"></div>
+            <!-- API Keys Tab -->
+            <div id="apiKeysTab" class="tab-content active">
+                <!-- Add Key Section -->
+                <div class="add-key-section">
+                    <h2>Add New API Key</h2>
+                    <div class="form-group">
+                        <label for="keyName">Name</label>
+                        <input type="text" id="keyName" placeholder="e.g., OpenAI API Key">
+                    </div>
+                    <div class="form-group">
+                        <label for="keyDescription">Description (Optional)</label>
+                        <input type="text" id="keyDescription" placeholder="e.g., Used for chatbot project">
+                    </div>
+                    <div class="form-group">
+                        <label for="apiKey">API Key</label>
+                        <input type="text" id="apiKey" placeholder="Enter your API key">
+                    </div>
+                    <button class="btn-primary" onclick="addKey()">Add API Key</button>
+                </div>
+
+                <!-- Keys List -->
+                <div class="keys-list">
+                    <h2>Your API Keys</h2>
+                    <div id="keysList"></div>
+                </div>
+            </div>
+
+            <!-- Hackathons Tab -->
+            <div id="hackathonsTab" class="tab-content">
+                <!-- Add Hackathon Section -->
+                <div class="add-key-section">
+                    <h2>Add New Hackathon</h2>
+                    
+                    <div class="form-group">
+                        <label for="hackathonName">Hackathon Name *</label>
+                        <input type="text" id="hackathonName" placeholder="e.g., Navonmesh 2026">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonOrganizer">Organizer</label>
+                        <input type="text" id="hackathonOrganizer" placeholder="e.g., MES Institute">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonDeadline">Deadline</label>
+                        <input type="text" id="hackathonDeadline" placeholder="e.g., 20th May 2025, 11:59 PM IST">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonEventDate">Event Date & Duration</label>
+                        <input type="text" id="hackathonEventDate" placeholder="e.g., 11th July 2025, 09:00 AM - 12th July 2025">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonLocation">Location</label>
+                        <input type="text" id="hackathonLocation" placeholder="e.g., Offline - MES IMCC, Pune Campus">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonRegFee">Registration Fee</label>
+                        <input type="text" id="hackathonRegFee" placeholder="e.g., Free">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonPrize">Prize Pool</label>
+                        <input type="text" id="hackathonPrize" placeholder="e.g., Winners: ₹20,000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonDescription">Short Description</label>
+                        <textarea id="hackathonDescription" placeholder="Brief description of the hackathon"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonEligibility">Eligibility</label>
+                        <input type="text" id="hackathonEligibility" placeholder="e.g., All college students">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonTeamSize">Team Size</label>
+                        <input type="text" id="hackathonTeamSize" placeholder="e.g., 2-4 members">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hackathonLink">Official Link</label>
+                        <input type="text" id="hackathonLink" placeholder="https://unstop.com/...">
+                    </div>
+                    
+                    <button class="btn-primary" onclick="addHackathon()">Add Hackathon</button>
+                </div>
+
+                <!-- Hackathons List -->
+                <div class="keys-list">
+                    <h2>Saved Hackathons</h2>
+                    <div id="hackathonsList"></div>
+                </div>
             </div>
         </div>
     </div>
