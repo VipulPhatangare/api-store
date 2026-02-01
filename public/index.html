@@ -618,7 +618,8 @@
                         <input type="text" id="hackathonLink" placeholder="https://unstop.com/...">
                     </div>
                     
-                    <button class="btn-primary" onclick="addHackathon()">Add Hackathon</button>
+                    <button class="btn-primary" id="hackathonSubmitBtn" onclick="addHackathon()">Add Hackathon</button>
+                    <button class="btn-secondary" id="hackathonCancelBtn" onclick="clearHackathonForm()" style="display: none; margin-left: 10px;">Cancel</button>
                 </div>
 
                 <!-- Hackathons List -->

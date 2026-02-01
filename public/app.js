@@ -21,6 +21,9 @@ function showToast(text, type = 'success') {
     }, 3000);
 }
 
+// Global variable to track editing state
+let editingHackathonId = null;
+
 // Close toast notification
 function closeToast(button) {
     const toast = button.parentElement;
@@ -366,6 +369,7 @@ async function loadHackathons() {
                 </div>
                 
                 <div class="key-actions">
+                    <button class="btn-secondary" onclick="editHackathon('${h._id}')">✏️ Edit</button>
                     <button class="btn-danger" onclick="deleteHackathon('${h._id}')">🗑️ Delete</button>
                 </div>
             </div>
@@ -396,8 +400,12 @@ async function addHackathon() {
     }
     
     try {
-        const response = await fetch('/api/hackathons', {
-            method: 'POST',
+        const isEditing = editingHackathonId !== null;
+        const url = isEditing ? `/api/hackathons/${editingHackathonId}` : '/api/hackathons';
+        const method = isEditing ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -419,27 +427,81 @@ async function addHackathon() {
         const data = await response.json();
         
         if (data.success) {
-            showToast('Hackathon added successfully!', 'success');
-            // Clear all form fields
-            document.getElementById('hackathonName').value = '';
-            document.getElementById('hackathonOrganizer').value = '';
-            document.getElementById('hackathonDeadline').value = '';
-            document.getElementById('hackathonEventDate').value = '';
-            document.getElementById('hackathonLocation').value = '';
-            document.getElementById('hackathonRegFee').value = '';
-            document.getElementById('hackathonPrize').value = '';
-            document.getElementById('hackathonDescription').value = '';
-            document.getElementById('hackathonEligibility').value = '';
-            document.getElementById('hackathonTeamSize').value = '';
-            document.getElementById('hackathonLink').value = '';
+            showToast(isEditing ? 'Hackathon updated successfully!' : 'Hackathon added successfully!', 'success');
+            clearHackathonForm();
             loadHackathons();
         } else {
-            showToast(data.error || 'Failed to add hackathon', 'error');
+            showToast(data.error || `Failed to ${isEditing ? 'update' : 'add'} hackathon`, 'error');
         }
     } catch (error) {
-        showToast('Failed to add hackathon', 'error');
-        console.error('Add hackathon error:', error);
+        showToast(`Failed to ${editingHackathonId ? 'update' : 'add'} hackathon`, 'error');
+        console.error('Add/Update hackathon error:', error);
     }
+}
+
+// Edit hackathon - populate form with existing data
+async function editHackathon(id) {
+    try {
+        const response = await fetch('/api/hackathons');
+        const hackathons = await response.json();
+        
+        const hackathon = hackathons.find(h => h._id === id);
+        
+        if (!hackathon) {
+            showToast('Hackathon not found', 'error');
+            return;
+        }
+        
+        // Populate form
+        document.getElementById('hackathonName').value = hackathon.hackathon_name || '';
+        document.getElementById('hackathonOrganizer').value = hackathon.organizer || '';
+        document.getElementById('hackathonDeadline').value = hackathon.deadline || '';
+        document.getElementById('hackathonEventDate').value = hackathon.event_date_duration || '';
+        document.getElementById('hackathonLocation').value = hackathon.location || '';
+        document.getElementById('hackathonRegFee').value = hackathon.registration_fee || '';
+        document.getElementById('hackathonPrize').value = hackathon.prize_pool || '';
+        document.getElementById('hackathonDescription').value = hackathon.short_description || '';
+        document.getElementById('hackathonEligibility').value = hackathon.eligibility || '';
+        document.getElementById('hackathonTeamSize').value = hackathon.team_size || '';
+        document.getElementById('hackathonLink').value = hackathon.official_link || '';
+        
+        // Set editing state
+        editingHackathonId = id;
+        
+        // Update button text
+        document.getElementById('hackathonSubmitBtn').textContent = 'Update Hackathon';
+        document.getElementById('hackathonCancelBtn').style.display = 'inline-block';
+        
+        // Scroll to form
+        document.querySelector('.add-key-section').scrollIntoView({ behavior: 'smooth' });
+        
+        showToast('Edit mode: Modify the details and click Update', 'success');
+    } catch (error) {
+        showToast('Failed to load hackathon details', 'error');
+        console.error('Edit hackathon error:', error);
+    }
+}
+
+// Clear hackathon form
+function clearHackathonForm() {
+    document.getElementById('hackathonName').value = '';
+    document.getElementById('hackathonOrganizer').value = '';
+    document.getElementById('hackathonDeadline').value = '';
+    document.getElementById('hackathonEventDate').value = '';
+    document.getElementById('hackathonLocation').value = '';
+    document.getElementById('hackathonRegFee').value = '';
+    document.getElementById('hackathonPrize').value = '';
+    document.getElementById('hackathonDescription').value = '';
+    document.getElementById('hackathonEligibility').value = '';
+    document.getElementById('hackathonTeamSize').value = '';
+    document.getElementById('hackathonLink').value = '';
+    
+    // Reset editing state
+    editingHackathonId = null;
+    
+    // Reset button text
+    document.getElementById('hackathonSubmitBtn').textContent = 'Add Hackathon';
+    document.getElementById('hackathonCancelBtn').style.display = 'none';
 }
 
 // Delete hackathon

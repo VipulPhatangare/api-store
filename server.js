@@ -229,6 +229,61 @@ app.get('/api/hackathons', isAuthenticated, async (req, res) => {
     }
 });
 
+// Update hackathon
+app.put('/api/hackathons/:id', isAuthenticated, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            hackathon_name,
+            organizer,
+            deadline,
+            event_date_duration,
+            location,
+            registration_fee,
+            prize_pool,
+            short_description,
+            eligibility,
+            team_size,
+            official_link
+        } = req.body;
+        
+        if (!hackathon_name) {
+            return res.status(400).json({ error: 'Hackathon name is required' });
+        }
+        
+        const updatedHackathon = await Hackathon.findByIdAndUpdate(
+            id,
+            {
+                hackathon_name,
+                organizer: organizer || '',
+                deadline: deadline || '',
+                event_date_duration: event_date_duration || '',
+                location: location || '',
+                registration_fee: registration_fee || '',
+                prize_pool: prize_pool || '',
+                short_description: short_description || '',
+                eligibility: eligibility || '',
+                team_size: team_size || '',
+                official_link: official_link || ''
+            },
+            { new: true }
+        );
+        
+        if (!updatedHackathon) {
+            return res.status(404).json({ error: 'Hackathon not found' });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Hackathon updated successfully',
+            data: updatedHackathon
+        });
+    } catch (error) {
+        console.error('Failed to update hackathon:', error);
+        res.status(500).json({ error: 'Failed to update hackathon: ' + error.message });
+    }
+});
+
 // Delete hackathon
 app.delete('/api/hackathons/:id', isAuthenticated, async (req, res) => {
     try {
